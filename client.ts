@@ -19,7 +19,7 @@ async function main({
     console.log("message:", data);
 
     if (data.method) {
-      fetch(`${url}${data.path}`, {
+      fetch(`${domain}${data.path}`, {
         method: data.method,
         headers: data.headers,
       })
@@ -57,6 +57,7 @@ const { values } = parseArgs({
 });
 
 if (!values.port) throw "pass --port 3000";
+
 main({
   url: `localhost:${values.port}`,
   domain: values.domain,

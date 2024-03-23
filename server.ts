@@ -3,10 +3,10 @@ import { uid, wait } from "./utils";
 
 type Client = { id: string };
 
-const port = 1234;
+const port = Bun.env.PORT || 1234;
 const protocol = "http";
 const domain = Bun.env.DOMAIN || `localhost:${port}`;
-console.log("domain:", domain);
+
 const clients = new Map<string, ServerWebSocket<Client>>();
 const clientData = new Map<string, any>();
 
@@ -22,7 +22,6 @@ serve<Client>({
       else return new Response("Upgrade failed :(", { status: 500 });
     }
 
-    console.log("user req:", req.url);
     const subdomain = reqUrl.hostname.split(".")[0];
 
     if (!clients.has(subdomain)) {
@@ -42,6 +41,8 @@ serve<Client>({
     let retries = 5;
     let res = clientData.get(subdomain);
 
+    // Poll every second for the client to respond
+    // TODO: replace this with a way for the client to trigger this
     while (!res) {
       await wait(1000);
       retries--;
@@ -54,7 +55,7 @@ serve<Client>({
       }
     }
 
-    return new Response(res, { status: 200 });
+    return new Response(res);
   },
   websocket: {
     open(ws) {
@@ -68,7 +69,7 @@ serve<Client>({
       );
     },
     message(ws, message) {
-      console.log("message from", ws.data.id, message);
+      console.log("message from", ws.data.id);
       clientData.set(ws.data.id, message);
     },
     close(ws) {
@@ -78,4 +79,4 @@ serve<Client>({
   },
 });
 
-console.log(`Websocket server on port ${port}`);
+console.log(`Websocket server up at ws://${domain}`);

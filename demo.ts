@@ -11,12 +11,8 @@ serve({
     const bod = await req.text();
     bod && console.log("Body: ", bod);
 
-    const res = new Response(`hello from localhost:${port}`, {
-      status: 200,
-    });
-
-    return res;
+    return new Response(`hello from localhost:${port}`);
   },
 });
 
-console.log(`Serving on port ${port}!`);
+console.log(`Serving app at http://localhost:${port}`);
