@@ -11,11 +11,15 @@
     "human-id": "^4.1.1"
   },
   "devDependencies": {
-    "@types/bun": "^1.0.8"
+    "@types/bun": "latest"
   },
   "scripts": {
-    "server": "bun run server.ts",
-    "lt": "bun run client.ts",
-    "demo": "bun run --hot demo.ts"
+    "server": "bun --hot server.ts",
+    "lt": "bun --hot client.ts",
+    "demo": "bun --hot demo.ts"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
   }
 }

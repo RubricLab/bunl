@@ -15,7 +15,7 @@ async function main({
   const socket = new WebSocket(serverUrl);
 
   socket.addEventListener("message", (event) => {
-    const data = JSON.parse(event.data);
+    const data = JSON.parse(event.data as string);
     console.log("message:", data);
 
     if (data.method) {

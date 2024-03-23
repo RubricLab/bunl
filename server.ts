@@ -1,4 +1,4 @@
-import { ServerWebSocket, serve } from "bun";
+import { serve, type ServerWebSocket } from "bun";
 import { uid, wait } from "./utils";
 
 type Client = { id: string };
