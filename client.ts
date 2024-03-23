@@ -1,4 +1,4 @@
-import { parseArgs } from "node:util";
+import { parseArgs } from "util";
 
 async function main({
   url,

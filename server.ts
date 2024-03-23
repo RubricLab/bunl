@@ -1,5 +1,5 @@
-import { serve, type ServerWebSocket } from "bun";
-import { uid, wait } from "./utils";
+import { serve, sleep, type ServerWebSocket } from "bun";
+import { uid } from "./utils";
 
 type Client = { id: string };
 
@@ -36,7 +36,7 @@ serve<Client>({
     client.send(JSON.stringify({ method, path, headers }));
 
     // Wait for the client to cache its response above
-    await wait(1);
+    await sleep(1);
 
     let retries = 5;
     let res = clientData.get(subdomain);
@@ -44,7 +44,7 @@ serve<Client>({
     // Poll every second for the client to respond
     // TODO: replace this with a way for the client to trigger this
     while (!res) {
-      await wait(1000);
+      await sleep(1000);
       retries--;
 
       res = clientData.get(subdomain);
