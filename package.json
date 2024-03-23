@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rubriclab/bunl"
+    "url": "https://github.com/rubriclab/bunl.git"
   },
   "dependencies": {
     "human-id": "^4.1.1"
@@ -21,5 +21,16 @@
   "type": "module",
   "peerDependencies": {
     "typescript": "^5.0.0"
-  }
+  },
+  "publishConfig": {
+    "@RubricLab:registry": "https://registry.npmjs.org",
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "homepage": "https://github.com/RubricLab/bunl#readme",
+  "keywords": [
+    "local",
+    "tunnel",
+    "rubric"
+  ]
 }

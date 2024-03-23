@@ -4,9 +4,7 @@ import { humanId } from "human-id";
  * Generate a human-readable unique identifier
  * Eg. all-zebras-eat
  */
-export const uid = () => {
-  return humanId({ capitalize: false, separator: "-" });
-};
+export const uid = () => humanId({ capitalize: false, separator: "-" });
 
 /**
  * Wait for `ms` milliseconds. A promise.

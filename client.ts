@@ -1,4 +1,4 @@
-import { parseArgs } from "util";
+import { parseArgs } from "node:util";
 
 async function main({
   url,
@@ -36,6 +36,10 @@ async function main({
   });
 }
 
+/**
+ * Eg. `bun client.ts -p 3000 -d tunnel.example.so -s my-subdomain`
+ * > my-subdomain.tunnel.example.so will be proxied to localhost:3000
+ */
 const { values } = parseArgs({
   args: Bun.argv,
   options: {
