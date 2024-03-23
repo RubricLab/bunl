@@ -2,6 +2,12 @@
 
 ## A Bun WebSocket re-write of LocalTunnel
 
+To try it:
+
+```bash
+bun x bunl -p 3000 -d dev.rubric.me -s my-name
+```
+
 To install dependencies:
 
 ```bash

@@ -1,11 +1,14 @@
 {
-  "name": "bunl",
+  "bin": {
+    "bunl": "./build/client.js"
+  },
+  "name": "@rubriclab/bunl",
   "description": "expose localhost to the world",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rubriclab/bunl.git"
+    "url": "git+https://github.com/RubricLab/bunl.git"
   },
   "dependencies": {
     "human-id": "^4.1.1"
