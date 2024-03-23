@@ -1,11 +1,9 @@
 // client.ts
-import {parseArgs} from "util";
-async function main({
-  url,
-  domain,
-  subdomain
-}) {
-  const serverUrl = `ws://${domain || "localhost:1234"}?new${subdomain ? `&subdomain=${subdomain}` : ""}`;
+import { parseArgs } from "util";
+async function main({ url, domain, subdomain }) {
+  const serverUrl = `ws://${domain || "localhost:1234"}?new${
+    subdomain ? `&subdomain=${subdomain}` : ""
+  }`;
   const socket = new WebSocket(serverUrl);
   socket.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
@@ -13,10 +11,12 @@ async function main({
     if (data.method) {
       fetch(`${url}${data.path}`, {
         method: data.method,
-        headers: data.headers
-      }).then((res) => res.text()).then((res) => {
-        socket.send(res);
-      });
+        headers: data.headers,
+      })
+        .then((res) => res.text())
+        .then((res) => {
+          socket.send(res);
+        });
     }
   });
   socket.addEventListener("open", (event) => {
@@ -30,23 +30,22 @@ var { values } = parseArgs({
     port: {
       type: "string",
       required: true,
-      short: "p"
+      short: "p",
     },
     domain: {
       type: "string",
-      short: "d"
+      short: "d",
     },
     subdomain: {
       type: "string",
-      short: "s"
-    }
+      short: "s",
+    },
   },
-  allowPositionals: true
+  allowPositionals: true,
 });
-if (!values.port)
-  throw "pass --port 3000";
+if (!values.port) throw "pass --port 3000";
 main({
   url: `localhost:${values.port}`,
   domain: values.domain,
-  subdomain: values.subdomain
+  subdomain: values.subdomain,
 });
