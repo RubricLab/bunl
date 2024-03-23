@@ -1,7 +1,17 @@
 import { parseArgs } from "util";
 
-async function main({ url, domain, subdomain }: { url: string; domain?: string, subdomain?: string }) {
-  const serverUrl = `ws://${domain || "localhost:1234"}?new${subdomain ? `&subdomain=${subdomain}` : ""}`;
+async function main({
+  url,
+  domain,
+  subdomain,
+}: {
+  url: string;
+  domain?: string;
+  subdomain?: string;
+}) {
+  const serverUrl = `ws://${domain || "localhost:1234"}?new${
+    subdomain ? `&subdomain=${subdomain}` : ""
+  }`;
   const socket = new WebSocket(serverUrl);
 
   socket.addEventListener("message", (event) => {
@@ -47,4 +57,8 @@ const { values } = parseArgs({
 });
 
 if (!values.port) throw "pass --port 3000";
-main({ url: `localhost:${values.port}`, domain: values.domain, subdomain: values.subdomain });
+main({
+  url: `localhost:${values.port}`,
+  domain: values.domain,
+  subdomain: values.subdomain,
+});
