@@ -1,4 +1,3 @@
-// @bun
 // client.ts
 import {parseArgs} from "util";
 async function main({

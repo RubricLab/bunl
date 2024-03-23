@@ -4,7 +4,7 @@
   },
   "name": "@rubriclab/bunl",
   "description": "expose localhost to the world",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -16,6 +16,7 @@
   "devDependencies": {
     "@types/bun": "latest"
   },
+  "main": "./build/client.js",
   "scripts": {
     "server": "bun --hot server.ts",
     "lt": "bun --hot client.ts",
