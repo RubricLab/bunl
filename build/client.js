@@ -1,4 +1,4 @@
-// client.ts
+#! /usr/bin/env node
 import { parseArgs } from "util";
 async function main({ url, domain, subdomain }) {
   const serverUrl = `ws://${domain || "localhost:1234"}?new${
