@@ -12,7 +12,7 @@ async function main({
     const data = JSON.parse(event.data);
     console.log("message:", data);
     if (data.method) {
-      fetch(`${domain}${data.path}`, {
+      fetch(`${url}${data.path}`, {
         method: data.method,
         headers: data.headers
       }).then((res) => res.text()).then((res) => {
