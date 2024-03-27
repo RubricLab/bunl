@@ -42,7 +42,7 @@ serve<Client>({
     await sleep(1);
 
     let retries = 5;
-    let res = clientData.get(subdomain);
+    let res = clientData.get(`${subdomain}/${pathname}`);
 
     // Poll every second for the client to respond
     // TODO: replace poll with a client-triggered callback
@@ -50,7 +50,7 @@ serve<Client>({
       await sleep(1000);
       retries--;
 
-      res = clientData.get(subdomain);
+      res = clientData.get(`${subdomain}/${pathname}`);
 
       if (retries < 1) {
         return new Response("client not responding", { status: 500 });
@@ -78,7 +78,9 @@ serve<Client>({
     },
     message(ws, message) {
       console.log("message from", ws.data.id);
-      clientData.set(ws.data.id, message);
+
+      const { pathname } = JSON.parse(message as string);
+      clientData.set(`${ws.data.id}/${pathname}`, message);
     },
     close(ws) {
       console.log("closing", ws.data.id);

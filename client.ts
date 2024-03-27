@@ -12,14 +12,18 @@ async function main({
   subdomain?: string;
   open?: boolean;
 }) {
-  const serverUrl = `ws://${domain || "localhost:1234"}?new${
-    subdomain ? `&subdomain=${subdomain}` : ""
-  }`;
+  const params = new URLSearchParams({
+    new: "",
+    ...(subdomain ? { subdomain } : {}),
+  }).toString();
+  const serverUrl = `ws://${domain}?${params}`;
   const socket = new WebSocket(serverUrl);
 
   socket.addEventListener("message", async (event) => {
     const data = JSON.parse(event.data as string);
     console.log("message:", data);
+
+    if (open && data.url) browser(data.url);
 
     if (data.method) {
       const res = await fetch(`${url}${data.pathname}`, {
@@ -31,6 +35,7 @@ async function main({
       const body = await res.text();
 
       const serializedRes = JSON.stringify({
+        pathname: data.pathname,
         status,
         statusText,
         headers: Object.fromEntries(headers),
@@ -39,8 +44,6 @@ async function main({
 
       socket.send(serializedRes);
     }
-
-    if (open && data.url) browser(data.url);
   });
 
   socket.addEventListener("open", (event) => {
@@ -68,6 +71,7 @@ const { values } = parseArgs({
     },
     domain: {
       type: "string",
+      default: "localhost:1234",
       short: "d",
     },
     subdomain: {
