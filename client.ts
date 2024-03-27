@@ -24,15 +24,12 @@ async function main({
         headers: data.headers,
       })
         .then((res) => res.text())
-        .then((res) => {
-          socket.send(res);
-        });
+        .then((res) => socket.send(res));
     }
   });
 
   socket.addEventListener("open", (event) => {
-    console.log("socket ready:", !!(event.target as any).readyState);
-    socket.ping();
+    if (!(event.target as any).readyState) throw "Not ready";
   });
 }
 
@@ -60,7 +57,7 @@ const { values } = parseArgs({
   allowPositionals: true,
 });
 
-if (!values.port) throw "pass --port 3000";
+if (!values.port) throw "pass -p 3000";
 
 main({
   url: `localhost:${values.port}`,

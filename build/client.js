@@ -1,4 +1,5 @@
 #! /usr/bin/env bun
+// client.ts
 import { parseArgs } from "util";
 async function main({ url, domain, subdomain }) {
   const serverUrl = `ws://${domain || "localhost:1234"}?new${
@@ -14,14 +15,11 @@ async function main({ url, domain, subdomain }) {
         headers: data.headers,
       })
         .then((res) => res.text())
-        .then((res) => {
-          socket.send(res);
-        });
+        .then((res) => socket.send(res));
     }
   });
   socket.addEventListener("open", (event) => {
-    console.log("socket ready:", !!event.target.readyState);
-    socket.ping();
+    if (!event.target.readyState) throw "Not ready";
   });
 }
 var { values } = parseArgs({
@@ -43,7 +41,7 @@ var { values } = parseArgs({
   },
   allowPositionals: true,
 });
-if (!values.port) throw "pass --port 3000";
+if (!values.port) throw "pass -p 3000";
 main({
   url: `localhost:${values.port}`,
   domain: values.domain,
