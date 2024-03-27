@@ -7,9 +7,8 @@ const port = Bun.env.PORT || 1234;
 const scheme = Bun.env.SCHEME || "http";
 const domain = Bun.env.DOMAIN || `localhost:${port}`;
 
-// TODO: replace this with Redis to preserve sessions across deployments
 const clients = new Map<string, ServerWebSocket<Client>>();
-const clientData = new Map<string, any>();
+const clientData = new Map<string, string>();
 
 serve<Client>({
   port,
@@ -34,9 +33,9 @@ serve<Client>({
 
     // The magic: forward the req to the client
     const client = clients.get(subdomain)!;
-    const { method, url, headers } = req;
+    const { method, url, headers: reqHeaders } = req;
     const { pathname } = new URL(url);
-    client.send(JSON.stringify({ method, pathname, headers }));
+    client.send(JSON.stringify({ method, pathname, headers: reqHeaders }));
 
     // Wait for the client to cache its response above
     await sleep(1);
@@ -57,12 +56,10 @@ serve<Client>({
       }
     }
 
-    const { status, statusText, headers: resHeaders, body } = JSON.parse(res);
-    const init = { headers: resHeaders, status, statusText };
-    delete resHeaders["content-encoding"];
-    delete resHeaders["Content-Encoding"];
+    const { status, statusText, headers, body } = JSON.parse(res);
+    delete headers["content-encoding"];
 
-    return new Response(body, init);
+    return new Response(body, { status, statusText, headers });
   },
   websocket: {
     open(ws) {
@@ -76,10 +73,10 @@ serve<Client>({
         })
       );
     },
-    message(ws, message) {
+    message(ws, message: string) {
       console.log("message from", ws.data.id);
 
-      const { pathname } = JSON.parse(message as string);
+      const { pathname } = JSON.parse(message);
       clientData.set(`${ws.data.id}/${pathname}`, message);
     },
     close(ws) {

@@ -47,7 +47,7 @@ async function main({
   });
 
   socket.addEventListener("open", (event) => {
-    if (!(event.target as any).readyState) throw "Not ready";
+    if (!event.target.readyState) throw "Not ready";
   });
 
   socket.addEventListener("close", () => {
