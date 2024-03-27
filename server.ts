@@ -7,6 +7,7 @@ const port = Bun.env.PORT || 1234;
 const scheme = Bun.env.SCHEME || "http";
 const domain = Bun.env.DOMAIN || `localhost:${port}`;
 
+// TODO: replace this with Redis to preserve sessions across deployments
 const clients = new Map<string, ServerWebSocket<Client>>();
 const clientData = new Map<string, any>();
 
@@ -17,7 +18,9 @@ serve<Client>({
 
     if (reqUrl.searchParams.has("new")) {
       const requested = reqUrl.searchParams.get("subdomain");
-      const id = requested && !clients.has(requested) ? requested : uid();
+      let id = requested || uid();
+      if (clients.has(id)) id = uid();
+
       const upgraded = server.upgrade(req, { data: { id } });
       if (upgraded) return;
       else return new Response("upgrade failed", { status: 500 });
@@ -32,8 +35,8 @@ serve<Client>({
     // The magic: forward the req to the client
     const client = clients.get(subdomain)!;
     const { method, url, headers } = req;
-    const path = new URL(url).pathname;
-    client.send(JSON.stringify({ method, path, headers }));
+    const { pathname } = new URL(url);
+    client.send(JSON.stringify({ method, pathname, headers }));
 
     // Wait for the client to cache its response above
     await sleep(1);
@@ -50,17 +53,23 @@ serve<Client>({
       res = clientData.get(subdomain);
 
       if (retries < 1) {
-        console.log(`\x1b[31m${subdomain} not responding \x1b[0m`);
-        return new Response("client not responding :(", { status: 500 });
+        return new Response("client not responding", { status: 500 });
       }
     }
 
-    return new Response(res);
+    const { status, statusText, headers: resHeaders, body } = JSON.parse(res);
+    const init = { headers: resHeaders, status, statusText };
+    delete resHeaders["content-encoding"];
+    delete resHeaders["Content-Encoding"];
+
+    return new Response(body, init);
   },
   websocket: {
     open(ws) {
-      console.log("connecting to", ws.data.id);
       clients.set(ws.data.id, ws);
+      console.log(
+        `\x1b[32mconnected to ${ws.data.id} (${clients.size} total)\x1b[0m`
+      );
       ws.send(
         JSON.stringify({
           url: `${scheme}://${ws.data.id}.${domain}`,

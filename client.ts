@@ -1,41 +1,62 @@
 import { parseArgs } from "util";
+import browser from "open";
 
 async function main({
   url,
   domain,
   subdomain,
+  open,
 }: {
   url: string;
   domain?: string;
   subdomain?: string;
+  open?: boolean;
 }) {
   const serverUrl = `ws://${domain || "localhost:1234"}?new${
     subdomain ? `&subdomain=${subdomain}` : ""
   }`;
   const socket = new WebSocket(serverUrl);
 
-  socket.addEventListener("message", (event) => {
+  socket.addEventListener("message", async (event) => {
     const data = JSON.parse(event.data as string);
     console.log("message:", data);
 
     if (data.method) {
-      fetch(`${url}${data.path}`, {
+      const res = await fetch(`${url}${data.pathname}`, {
         method: data.method,
         headers: data.headers,
-      })
-        .then((res) => res.text())
-        .then((res) => socket.send(res));
+      });
+
+      const { status, statusText, headers } = res;
+      const body = await res.text();
+
+      const serializedRes = JSON.stringify({
+        status,
+        statusText,
+        headers: Object.fromEntries(headers),
+        body,
+      });
+
+      socket.send(serializedRes);
     }
+
+    if (open && data.url) browser(data.url);
   });
 
   socket.addEventListener("open", (event) => {
     if (!(event.target as any).readyState) throw "Not ready";
   });
+
+  socket.addEventListener("close", () => {
+    console.log(`\x1b[31mfailed to connect to server\x1b[0m`);
+    process.exit();
+  });
 }
 
 /**
- * Eg. `bun client.ts -p 3000 -d tunnel.example.so -s my-subdomain`
- * > my-subdomain.tunnel.example.so will be proxied to localhost:3000
+ * Eg. `bun client.ts -p 3000 -d example.so -s my-subdomain -o`
+ * > my-subdomain.example.so will be proxied to localhost:3000
+ * See README for full usage.
  */
 const { values } = parseArgs({
   args: Bun.argv,
@@ -53,14 +74,21 @@ const { values } = parseArgs({
       type: "string",
       short: "s",
     },
+    open: {
+      type: "boolean",
+      short: "o",
+    },
   },
   allowPositionals: true,
 });
 
 if (!values.port) throw "pass -p 3000";
 
+const { port, domain, subdomain, open } = values;
+
 main({
-  url: `localhost:${values.port}`,
-  domain: values.domain,
-  subdomain: values.subdomain,
+  url: `localhost:${port}`,
+  domain,
+  subdomain,
+  open,
 });
