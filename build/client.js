@@ -1,25 +1,26 @@
 #! /usr/bin/env bun
+// @bun
 // client.ts
 import {parseArgs} from "util";
 
 // node_modules/open/index.js
-import process6 from "node:process";
-import {Buffer} from "node:buffer";
-import path from "node:path";
-import {fileURLToPath} from "node:url";
-import childProcess from "node:child_process";
-import fs4, {constants as fsConstants} from "node:fs/promises";
+import process6 from "process";
+import {Buffer} from "buffer";
+import path from "path";
+import {fileURLToPath} from "url";
+import childProcess from "child_process";
+import fs4, {constants as fsConstants} from "fs/promises";
 
 // node_modules/is-wsl/index.js
-import process2 from "node:process";
-import os from "node:os";
-import fs3 from "node:fs";
+import process2 from "process";
+import os from "os";
+import fs3 from "fs";
 
 // node_modules/is-inside-container/index.js
-import fs2 from "node:fs";
+import fs2 from "fs";
 
 // node_modules/is-docker/index.js
-import fs from "node:fs";
+import fs from "fs";
 var hasDockerEnv = function() {
   try {
     fs.statSync("/.dockerenv");
@@ -98,14 +99,14 @@ function defineLazyProperty(object, propertyName, valueGetter) {
 }
 
 // node_modules/default-browser/index.js
-import {promisify as promisify4} from "node:util";
-import process5 from "node:process";
-import {execFile as execFile4} from "node:child_process";
+import {promisify as promisify4} from "util";
+import process5 from "process";
+import {execFile as execFile4} from "child_process";
 
 // node_modules/default-browser-id/index.js
-import {promisify} from "node:util";
-import process3 from "node:process";
-import {execFile} from "node:child_process";
+import {promisify} from "util";
+import process3 from "process";
+import {execFile} from "child_process";
 var execFileAsync = promisify(execFile);
 async function defaultBrowserId() {
   if (process3.platform !== "darwin") {
@@ -117,9 +118,9 @@ async function defaultBrowserId() {
 }
 
 // node_modules/run-applescript/index.js
-import process4 from "node:process";
-import {promisify as promisify2} from "node:util";
-import {execFile as execFile2, execFileSync} from "node:child_process";
+import process4 from "process";
+import {promisify as promisify2} from "util";
+import {execFile as execFile2, execFileSync} from "child_process";
 async function runAppleScript(script, { humanReadableOutput = true } = {}) {
   if (process4.platform !== "darwin") {
     throw new Error("macOS only");
@@ -137,8 +138,8 @@ tell application "System Events" to get value of property list item "CFBundleNam
 }
 
 // node_modules/default-browser/windows.js
-import {promisify as promisify3} from "node:util";
-import {execFile as execFile3} from "node:child_process";
+import {promisify as promisify3} from "util";
+import {execFile as execFile3} from "child_process";
 var execFileAsync3 = promisify3(execFile3);
 var windowsBrowserProgIds = {
   AppXq0fevzme2pys62n3e0fbqa7peapykr8v: { name: "Edge", id: "com.microsoft.edge.old" },
@@ -451,7 +452,6 @@ async function main({
     const data = JSON.parse(event.data);
     if (data.url) {
       console.log(`
-
 \u21AA Your URL: [32m${data.url}[0m
 `);
       if (open2)
@@ -485,7 +485,7 @@ async function main({
   });
 }
 var { values } = parseArgs({
-  args: Bun.argv,
+  args: process.argv,
   options: {
     port: {
       type: "string",

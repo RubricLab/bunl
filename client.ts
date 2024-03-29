@@ -23,7 +23,7 @@ async function main({
     const data = JSON.parse(event.data as string);
 
     if (data.url) {
-      console.log(`\n\n↪ Your URL: \x1b[32m${data.url}\x1b[0m\n`);
+      console.log(`\n↪ Your URL: \x1b[32m${data.url}\x1b[0m\n`);
       if (open) browser(data.url);
     }
 
@@ -65,7 +65,7 @@ async function main({
  * See README for full usage.
  */
 const { values } = parseArgs({
-  args: Bun.argv,
+  args: process.argv,
   options: {
     port: {
       type: "string",

@@ -4,7 +4,7 @@
   },
   "name": "@rubriclab/bunl",
   "description": "Expose localhost to the world",
-  "version": "0.0.15",
+  "version": "0.0.19",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -23,7 +23,9 @@
     "dev:server": "bun --hot server.ts",
     "client": "bun --hot client.ts",
     "demo": "bun --hot demo.ts",
-    "build": "BUILD=build/client.js && bun build client.ts --outdir build --target node && echo -e \"#! /usr/bin/env bun\n$(cat $BUILD)\" > $BUILD"
+    "client:upgrade": "bun rm -g @rubriclab/bunl && bun i -g @rubriclab/bunl@latest",
+    "build": "BUILD=build/client.js && bun build client.ts --outdir build --target bun && echo -e \"#! /usr/bin/env bun\n$(cat $BUILD)\" > $BUILD",
+    "npm:publish": "bun run build && npm publish"
   },
   "type": "module",
   "peerDependencies": {
