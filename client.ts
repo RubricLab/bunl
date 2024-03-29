@@ -21,14 +21,17 @@ async function main({
 
   socket.addEventListener("message", async (event) => {
     const data = JSON.parse(event.data as string);
-    console.log("message:", data);
 
-    if (open && data.url) browser(data.url);
+    if (data.url) {
+      console.log(`\n\n↪ Your URL: \x1b[32m${data.url}\x1b[0m\n`);
+      if (open) browser(data.url);
+    }
 
     if (data.method) {
       const res = await fetch(`${url}${data.pathname}`, {
         method: data.method,
         headers: data.headers,
+        body: data.body,
       });
 
       const { status, statusText, headers } = res;

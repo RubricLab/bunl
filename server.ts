@@ -34,8 +34,11 @@ serve<Client>({
     // The magic: forward the req to the client
     const client = clients.get(subdomain)!;
     const { method, url, headers: reqHeaders } = req;
+    const reqBody = await req.text();
     const { pathname } = new URL(url);
-    client.send(JSON.stringify({ method, pathname, headers: reqHeaders }));
+    client.send(
+      JSON.stringify({ method, pathname, body: reqBody, headers: reqHeaders })
+    );
 
     // Wait for the client to cache its response above
     await sleep(1);
