@@ -21,7 +21,7 @@ bun i
 To run the server:
 
 ```bash
-bun server
+bun dev:server
 ```
 
 (Optional) to run a dummy process on localhost:3000:

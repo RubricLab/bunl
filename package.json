@@ -4,7 +4,7 @@
   },
   "name": "@rubriclab/bunl",
   "description": "Expose localhost to the world",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -20,6 +20,7 @@
   "main": "build/client.js",
   "scripts": {
     "server": "bun server.ts",
+    "dev:server": "bun --hot server.ts",
     "client": "bun --hot client.ts",
     "demo": "bun --hot demo.ts",
     "build": "BUILD=build/client.js && bun build client.ts --outdir build --target node && echo -e \"#! /usr/bin/env bun\n$(cat $BUILD)\" > $BUILD"
