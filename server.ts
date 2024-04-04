@@ -35,7 +35,7 @@ serve<Client>({
     const client = clients.get(subdomain)!;
     const { method, url, headers: reqHeaders } = req;
     const reqBody = await req.text();
-    const { pathname } = new URL(url);
+    const pathname = new URL(url).pathname || "";
     client.send(
       JSON.stringify({ method, pathname, body: reqBody, headers: reqHeaders })
     );
