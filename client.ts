@@ -28,7 +28,7 @@ async function main({
     }
 
     if (data.method) {
-      const res = await fetch(`${url}${data.pathname}`, {
+      const res = await fetch(`${url}${data.pathname || ""}`, {
         method: data.method,
         headers: data.headers,
         body: data.body,
@@ -85,9 +85,18 @@ const { values } = parseArgs({
       type: "boolean",
       short: "o",
     },
+    version: {
+      type: "boolean",
+      short: "v",
+    },
   },
   allowPositionals: true,
 });
+
+if (values.version) {
+  console.log(process.env.npm_package_version);
+  process.exit();
+}
 
 if (!values.port) throw "pass -p 3000";
 

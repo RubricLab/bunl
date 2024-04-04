@@ -458,7 +458,7 @@ async function main({
         open_default(data.url);
     }
     if (data.method) {
-      const res = await fetch(`${url}${data.pathname}`, {
+      const res = await fetch(`${url}${data.pathname || ""}`, {
         method: data.method,
         headers: data.headers,
         body: data.body
@@ -504,10 +504,18 @@ var { values } = parseArgs({
     open: {
       type: "boolean",
       short: "o"
+    },
+    version: {
+      type: "boolean",
+      short: "v"
     }
   },
   allowPositionals: true
 });
+if (values.version) {
+  console.log("0.0.23");
+  process.exit();
+}
 if (!values.port)
   throw "pass -p 3000";
 var { port, domain, subdomain, open: open2 } = values;
