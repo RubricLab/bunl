@@ -1,7 +1,6 @@
 import { serve, sleep, type ServerWebSocket } from "bun";
 import { uid } from "./utils";
-
-type Client = { id: string };
+import type { Client, Payload } from "./types";
 
 const port = Bun.env.PORT || 1234;
 const scheme = Bun.env.SCHEME || "http";
@@ -35,10 +34,14 @@ serve<Client>({
     const client = clients.get(subdomain)!;
     const { method, url, headers: reqHeaders } = req;
     const reqBody = await req.text();
-    const pathname = new URL(url).pathname || "";
-    client.send(
-      JSON.stringify({ method, pathname, body: reqBody, headers: reqHeaders })
-    );
+    const pathname = new URL(url).pathname;
+    const payload: Payload = {
+      method,
+      pathname,
+      body: reqBody,
+      headers: reqHeaders,
+    };
+    client.send(JSON.stringify(payload));
 
     // Wait for the client to cache its response above
     await sleep(1);
@@ -67,9 +70,7 @@ serve<Client>({
   websocket: {
     open(ws) {
       clients.set(ws.data.id, ws);
-      console.log(
-        `\x1b[32mconnected to ${ws.data.id} (${clients.size} total)\x1b[0m`
-      );
+      console.log(`\x1b[32m+ ${ws.data.id} (${clients.size} total)\x1b[0m`);
       ws.send(
         JSON.stringify({
           url: `${scheme}://${ws.data.id}.${domain}`,
@@ -78,8 +79,7 @@ serve<Client>({
     },
     message(ws, message: string) {
       console.log("message from", ws.data.id);
-
-      const { pathname } = JSON.parse(message);
+      const { pathname } = JSON.parse(message) as Payload;
       clientData.set(`${ws.data.id}/${pathname}`, message);
     },
     close(ws) {
@@ -89,4 +89,4 @@ serve<Client>({
   },
 });
 
-console.log(`Websocket server up at ws://${domain}`);
+console.log(`websocket server up at ws://${domain}`);

@@ -1,13 +1,14 @@
 import { parseArgs } from "util";
 import browser from "open";
+import type { Payload } from "./types";
 
 async function main({
-  url,
+  port,
   domain,
   subdomain,
   open,
 }: {
-  url: string;
+  port?: string;
   domain?: string;
   subdomain?: string;
   open?: boolean;
@@ -28,6 +29,9 @@ async function main({
     }
 
     if (data.method) {
+      console.log(`\x1b[32m${data.method}\x1b[0m ${data.pathname}`);
+
+      const url = `http://localhost:${port}`;
       const res = await fetch(`${url}${data.pathname || ""}`, {
         method: data.method,
         headers: data.headers,
@@ -37,25 +41,24 @@ async function main({
       const { status, statusText, headers } = res;
       const body = await res.text();
 
-      const serializedRes = JSON.stringify({
+      const payload: Payload = {
         pathname: data.pathname,
         status,
         statusText,
         headers: Object.fromEntries(headers),
         body,
-      });
+      };
 
-      socket.send(serializedRes);
+      socket.send(JSON.stringify(payload));
     }
   });
 
   socket.addEventListener("open", (event) => {
-    if (!event.target.readyState) throw "Not ready";
+    if (!event.target.readyState) throw "not ready";
   });
 
   socket.addEventListener("close", () => {
-    console.log(`\x1b[31mfailed to connect to server\x1b[0m`);
-    process.exit();
+    throw "server closed connection";
   });
 }
 
@@ -67,28 +70,11 @@ async function main({
 const { values } = parseArgs({
   args: process.argv,
   options: {
-    port: {
-      type: "string",
-      required: true,
-      short: "p",
-    },
-    domain: {
-      type: "string",
-      default: "localhost:1234",
-      short: "d",
-    },
-    subdomain: {
-      type: "string",
-      short: "s",
-    },
-    open: {
-      type: "boolean",
-      short: "o",
-    },
-    version: {
-      type: "boolean",
-      short: "v",
-    },
+    port: { type: "string", short: "p", default: "3000" },
+    domain: { type: "string", short: "d", default: "localhost:1234" },
+    subdomain: { type: "string", short: "s" },
+    open: { type: "boolean", short: "o" },
+    version: { type: "boolean", short: "v" },
   },
   allowPositionals: true,
 });
@@ -98,13 +84,4 @@ if (values.version) {
   process.exit();
 }
 
-if (!values.port) throw "pass -p 3000";
-
-const { port, domain, subdomain, open } = values;
-
-main({
-  url: `localhost:${port}`,
-  domain,
-  subdomain,
-  open,
-});
+main(values);

@@ -437,7 +437,7 @@ var open_default = open;
 
 // client.ts
 async function main({
-  url,
+  port,
   domain,
   subdomain,
   open: open2
@@ -458,6 +458,8 @@ async function main({
         open_default(data.url);
     }
     if (data.method) {
+      console.log(`[32m${data.method}[0m ${data.pathname}`);
+      const url = `http://localhost:${port}`;
       const res = await fetch(`${url}${data.pathname || ""}`, {
         method: data.method,
         headers: data.headers,
@@ -465,63 +467,37 @@ async function main({
       });
       const { status, statusText, headers } = res;
       const body = await res.text();
-      const serializedRes = JSON.stringify({
+      const payload = {
         pathname: data.pathname,
         status,
         statusText,
         headers: Object.fromEntries(headers),
         body
-      });
-      socket.send(serializedRes);
+      };
+      socket.send(JSON.stringify(payload));
     }
   });
   socket.addEventListener("open", (event) => {
     if (!event.target.readyState)
-      throw "Not ready";
+      throw "not ready";
   });
   socket.addEventListener("close", () => {
-    console.log(`[31mfailed to connect to server[0m`);
-    process.exit();
+    throw "server closed connection";
   });
 }
 var { values } = parseArgs({
   args: process.argv,
   options: {
-    port: {
-      type: "string",
-      required: true,
-      short: "p"
-    },
-    domain: {
-      type: "string",
-      default: "localhost:1234",
-      short: "d"
-    },
-    subdomain: {
-      type: "string",
-      short: "s"
-    },
-    open: {
-      type: "boolean",
-      short: "o"
-    },
-    version: {
-      type: "boolean",
-      short: "v"
-    }
+    port: { type: "string", short: "p", default: "3000" },
+    domain: { type: "string", short: "d", default: "localhost:1234" },
+    subdomain: { type: "string", short: "s" },
+    open: { type: "boolean", short: "o" },
+    version: { type: "boolean", short: "v" }
   },
   allowPositionals: true
 });
 if (values.version) {
-  console.log("0.0.23");
+  console.log("0.0.24");
   process.exit();
 }
-if (!values.port)
-  throw "pass -p 3000";
-var { port, domain, subdomain, open: open2 } = values;
-main({
-  url: `localhost:${port}`,
-  domain,
-  subdomain,
-  open: open2
-});
+main(values);
