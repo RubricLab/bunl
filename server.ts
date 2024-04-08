@@ -50,6 +50,8 @@ serve<Client>({
     const res = await readable.getReader().read();
     const { status, statusText, headers, body } = JSON.parse(res.value);
 
+    delete headers["content-encoding"]; // remove problematic header
+
     return new Response(body, { status, statusText, headers });
   },
   websocket: {
