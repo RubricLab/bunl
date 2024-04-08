@@ -1,4 +1,4 @@
-import { serve, sleep, type ServerWebSocket } from "bun";
+import { serve, type ServerWebSocket } from "bun";
 import { uid } from "./utils";
 import type { Client, Payload } from "./types";
 
@@ -7,7 +7,7 @@ const scheme = Bun.env.SCHEME || "http";
 const domain = Bun.env.DOMAIN || `localhost:${port}`;
 
 const clients = new Map<string, ServerWebSocket<Client>>();
-const clientData = new Map<string, string>();
+const requesters = new Map<string, WritableStream>();
 
 serve<Client>({
   port,
@@ -27,7 +27,7 @@ serve<Client>({
     const subdomain = reqUrl.hostname.split(".")[0];
 
     if (!clients.has(subdomain)) {
-      return new Response("client not found", { status: 404 });
+      return new Response(`${subdomain} not found`, { status: 404 });
     }
 
     // The magic: forward the req to the client
@@ -41,29 +41,14 @@ serve<Client>({
       body: reqBody,
       headers: reqHeaders,
     };
+
+    const { writable, readable } = new TransformStream();
+
+    requesters.set(`${method}:${subdomain}${pathname}`, writable);
     client.send(JSON.stringify(payload));
 
-    // Wait for the client to cache its response above
-    await sleep(1);
-
-    let retries = 5;
-    let res = clientData.get(`${subdomain}/${pathname}`);
-
-    // Poll every second for the client to respond
-    // TODO: replace poll with a client-triggered callback
-    while (!res) {
-      await sleep(1000);
-      retries--;
-
-      res = clientData.get(`${subdomain}/${pathname}`);
-
-      if (retries < 1) {
-        return new Response("client not responding", { status: 500 });
-      }
-    }
-
-    const { status, statusText, headers, body } = JSON.parse(res);
-    delete headers["content-encoding"];
+    const res = await readable.getReader().read();
+    const { status, statusText, headers, body } = JSON.parse(res.value);
 
     return new Response(body, { status, statusText, headers });
   },
@@ -77,14 +62,20 @@ serve<Client>({
         })
       );
     },
-    message(ws, message: string) {
-      console.log("message from", ws.data.id);
-      const { pathname } = JSON.parse(message) as Payload;
-      clientData.set(`${ws.data.id}/${pathname}`, message);
+    message: async ({ data: { id } }, message: string) => {
+      console.log("message from", id);
+
+      const { method, pathname } = JSON.parse(message) as Payload;
+      const writable = requesters.get(`${method}:${id}${pathname}`);
+      if (!writable) throw "connection not found";
+
+      const writer = writable.getWriter();
+      await writer.write(message);
+      await writer.close();
     },
-    close(ws) {
-      console.log("closing", ws.data.id);
-      clients.delete(ws.data.id);
+    close({ data }) {
+      console.log("closing", data.id);
+      clients.delete(data.id);
     },
   },
 });

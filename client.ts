@@ -20,6 +20,8 @@ async function main({
   const serverUrl = `ws://${domain}?${params}`;
   const socket = new WebSocket(serverUrl);
 
+  const url = `http://localhost:${port}`;
+
   socket.addEventListener("message", async (event) => {
     const data = JSON.parse(event.data as string);
 
@@ -31,7 +33,6 @@ async function main({
     if (data.method) {
       console.log(`\x1b[32m${data.method}\x1b[0m ${data.pathname}`);
 
-      const url = `http://localhost:${port}`;
       const res = await fetch(`${url}${data.pathname || ""}`, {
         method: data.method,
         headers: data.headers,
@@ -42,6 +43,7 @@ async function main({
       const body = await res.text();
 
       const payload: Payload = {
+        method: data.method,
         pathname: data.pathname,
         status,
         statusText,
@@ -58,7 +60,8 @@ async function main({
   });
 
   socket.addEventListener("close", () => {
-    throw "server closed connection";
+    console.warn("server closed connection");
+    process.exit();
   });
 }
 
