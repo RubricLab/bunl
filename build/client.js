@@ -448,6 +448,7 @@ async function main({
   }).toString();
   const serverUrl = `ws://${domain}?${params}`;
   const socket = new WebSocket(serverUrl);
+  const url = `http://localhost:${port}`;
   socket.addEventListener("message", async (event) => {
     const data = JSON.parse(event.data);
     if (data.url) {
@@ -459,7 +460,6 @@ async function main({
     }
     if (data.method) {
       console.log(`[32m${data.method}[0m ${data.pathname}`);
-      const url = `http://localhost:${port}`;
       const res = await fetch(`${url}${data.pathname || ""}`, {
         method: data.method,
         headers: data.headers,
@@ -468,6 +468,7 @@ async function main({
       const { status, statusText, headers } = res;
       const body = await res.text();
       const payload = {
+        method: data.method,
         pathname: data.pathname,
         status,
         statusText,
@@ -482,7 +483,8 @@ async function main({
       throw "not ready";
   });
   socket.addEventListener("close", () => {
-    throw "server closed connection";
+    console.warn("server closed connection");
+    process.exit();
   });
 }
 var { values } = parseArgs({
@@ -497,7 +499,7 @@ var { values } = parseArgs({
   allowPositionals: true
 });
 if (values.version) {
-  console.log("0.0.24");
+  console.log("0.1.24");
   process.exit();
 }
 main(values);
