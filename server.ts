@@ -71,6 +71,8 @@ serve<Client>({
       const writable = requesters.get(`${method}:${id}${pathname}`);
       if (!writable) throw "connection not found";
 
+      if (writable.locked) return;
+
       const writer = writable.getWriter();
       await writer.write(message);
       await writer.close();
