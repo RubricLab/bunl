@@ -21,21 +21,21 @@ import fs2 from "fs";
 
 // node_modules/is-docker/index.js
 import fs from "fs";
-var hasDockerEnv = function() {
+function hasDockerEnv() {
   try {
     fs.statSync("/.dockerenv");
     return true;
   } catch {
     return false;
   }
-};
-var hasDockerCGroup = function() {
+}
+function hasDockerCGroup() {
   try {
     return fs.readFileSync("/proc/self/cgroup", "utf8").includes("docker");
   } catch {
     return false;
   }
-};
+}
 var isDockerCached;
 function isDocker() {
   if (isDockerCached === undefined) {
@@ -196,7 +196,7 @@ async function defaultBrowser2() {
 }
 
 // node_modules/open/index.js
-var detectArchBinary = function(binary) {
+function detectArchBinary(binary) {
   if (typeof binary === "string" || Array.isArray(binary)) {
     return binary;
   }
@@ -205,8 +205,8 @@ var detectArchBinary = function(binary) {
     throw new Error(`${arch} is not supported`);
   }
   return archBinary;
-};
-var detectPlatformBinary = function({ [platform]: platformBinary }, { wsl }) {
+}
+function detectPlatformBinary({ [platform]: platformBinary }, { wsl }) {
   if (wsl && is_wsl_default) {
     return detectArchBinary(wsl);
   }
@@ -214,7 +214,7 @@ var detectPlatformBinary = function({ [platform]: platformBinary }, { wsl }) {
     throw new Error(`${platform} is not supported`);
   }
   return detectArchBinary(platformBinary);
-};
+}
 var __dirname2 = path.dirname(fileURLToPath(import.meta.url));
 var localXdgOpenPath = path.join(__dirname2, "xdg-open");
 var { platform, arch } = process6;
@@ -458,21 +458,24 @@ async function main({
       if (open2)
         open_default(data.url);
     }
-    if (data.method) {
-      console.log(`[32m${data.method}[0m ${data.pathname}`);
-      const res = await fetch(`${url}${data.pathname || ""}`, {
-        method: data.method,
-        headers: data.headers,
-        body: data.body
+    const { method, headers: reqHeaders, pathname, body: reqBody } = data;
+    if (method) {
+      const now = performance.now();
+      const res = await fetch(`${url}${pathname || ""}`, {
+        method,
+        headers: reqHeaders,
+        body: reqBody
       });
+      const elapsed = performance.now() - now;
+      console.log(`[32m${method}[0m ${pathname} in ${elapsed.toFixed(2)}ms`);
       const { status, statusText, headers } = res;
       const body = await res.text();
       const payload = {
-        method: data.method,
-        pathname: data.pathname,
+        method,
+        pathname,
         status,
         statusText,
-        headers: Object.fromEntries(headers),
+        headers,
         body
       };
       socket.send(JSON.stringify(payload));
@@ -499,7 +502,7 @@ var { values } = parseArgs({
   allowPositionals: true
 });
 if (values.version) {
-  console.log("0.1.24");
+  console.log("0.1.25");
   process.exit();
 }
 main(values);
