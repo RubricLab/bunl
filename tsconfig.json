@@ -1,29 +1,5 @@
 {
-  "compilerOptions": {
-    // Enable latest features
-    "lib": ["esnext"],
-    "target": "esnext",
-    "module": "esnext",
-    "moduleDetection": "force",
-    "jsx": "react-jsx",
-    "allowJs": true,
-    "types": ["bun-types"],
-
-    // Bundler mode
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
-    "declaration": true,
-
-    // Best practices
-    "strict": true,
-    "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
-
-    // Some stricter flags (disabled by default)
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
-  }
+  "compilerOptions": { "baseUrl": "." },
+  "exclude": ["node_modules"],
+  "extends": "@rubriclab/typescript-config/base"
 }

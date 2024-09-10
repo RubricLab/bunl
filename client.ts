@@ -30,24 +30,30 @@ async function main({
       if (open) browser(data.url);
     }
 
-    if (data.method) {
-      console.log(`\x1b[32m${data.method}\x1b[0m ${data.pathname}`);
+    const { method, headers: reqHeaders, pathname, body: reqBody } = data;
 
-      const res = await fetch(`${url}${data.pathname || ""}`, {
-        method: data.method,
-        headers: data.headers,
-        body: data.body,
+    if (method) {
+      const now = performance.now();
+      const res = await fetch(`${url}${pathname || ""}`, {
+        method,
+        headers: reqHeaders,
+        body: reqBody,
       });
+
+      const elapsed = performance.now() - now;
+      console.log(
+        `\x1b[32m${method}\x1b[0m ${pathname} in ${elapsed.toFixed(2)}ms`
+      );
 
       const { status, statusText, headers } = res;
       const body = await res.text();
 
       const payload: Payload = {
-        method: data.method,
-        pathname: data.pathname,
+        method,
+        pathname,
         status,
         statusText,
-        headers: Object.fromEntries(headers),
+        headers,
         body,
       };
 
@@ -55,7 +61,7 @@ async function main({
     }
   });
 
-  socket.addEventListener("open", (event) => {
+  socket.addEventListener("open", (event: any) => {
     if (!event.target.readyState) throw "not ready";
   });
 
