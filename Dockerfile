@@ -1,15 +1,13 @@
-FROM oven/bun:1 as base
+FROM oven/bun:1.3-slim AS base
 
 WORKDIR /app
 
-COPY package.json /app/
-COPY bun.lockb /app/
-
+COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
-COPY . /app
+COPY . .
 
-ENV NODE_ENV production
-ENTRYPOINT ["bun", "server"]
-
+ENV NODE_ENV=production
 EXPOSE 1234
+
+ENTRYPOINT ["bun", "run", "server.ts"]

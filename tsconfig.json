@@ -1,5 +1,5 @@
 {
-  "compilerOptions": { "baseUrl": "." },
-  "exclude": ["node_modules"],
-  "extends": "@rubriclab/typescript-config/base"
+	"exclude": ["node_modules"],
+	"extends": "@rubriclab/config/tsconfig",
+	"include": ["**/*.ts"]
 }
