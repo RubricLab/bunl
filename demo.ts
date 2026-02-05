@@ -3,23 +3,25 @@
  * Exercises: HTML, CSS, JSON API, binary images (PNG), and binary fonts (WOFF2-like).
  */
 
-const port = Number(Bun.env.DEMO_PORT) || 3000;
+import { serve } from 'bun'
+
+const port = Number(Bun.env.DEMO_PORT) || 3000
 
 // 1x1 red PNG pixel (67 bytes) — smallest valid PNG
 const PNG_1PX = Buffer.from(
-	"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
-	"base64"
-);
+	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
+	'base64'
+)
 
 // Generate a binary blob to simulate a font file
 const FAKE_FONT = (() => {
-	const buf = Buffer.alloc(256);
-	for (let i = 0; i < 256; i++) buf[i] = i;
-	return buf;
-})();
+	const buf = Buffer.alloc(256)
+	for (let i = 0; i < 256; i++) buf[i] = i
+	return buf
+})()
 
-const CSS = `body { font-family: sans-serif; background: #111; color: #0f0; padding: 2rem; }
-img { border: 2px solid #0f0; margin: 1rem 0; }`;
+const CSS_CONTENT = `body { font-family: sans-serif; background: #111; color: #0f0; padding: 2rem; }
+img { border: 2px solid #0f0; margin: 1rem 0; }`
 
 const HTML = `<!DOCTYPE html>
 <html>
@@ -34,48 +36,50 @@ const HTML = `<!DOCTYPE html>
   <img src="/image.png" alt="test pixel" width="100" height="100">
   <p><a href="/api/health">JSON API</a> · <a href="/font.woff2">Font binary</a></p>
 </body>
-</html>`;
+</html>`
 
-Bun.serve({
-	port,
+serve({
 	fetch(req) {
-		const url = new URL(req.url);
-		const { pathname } = url;
+		const url = new URL(req.url)
+		const { pathname } = url
 
-		console.log(`${req.method} ${pathname}`);
+		console.log(`${req.method} ${pathname}`)
 
-		if (pathname === "/style.css") {
-			return new Response(CSS, {
-				headers: { "content-type": "text/css; charset=utf-8" },
-			});
+		if (pathname === '/style.css') {
+			return new Response(CSS_CONTENT, {
+				headers: { 'content-type': 'text/css; charset=utf-8' }
+			})
 		}
 
-		if (pathname === "/image.png") {
-			return new Response(PNG_1PX, {
-				headers: { "content-type": "image/png" },
-			});
+		if (pathname === '/image.png') {
+			return new Response(new Uint8Array(PNG_1PX), {
+				headers: { 'content-type': 'image/png' }
+			})
 		}
 
-		if (pathname === "/font.woff2") {
-			return new Response(FAKE_FONT, {
-				headers: { "content-type": "font/woff2" },
-			});
+		if (pathname === '/font.woff2') {
+			return new Response(new Uint8Array(FAKE_FONT), {
+				headers: { 'content-type': 'font/woff2' }
+			})
 		}
 
-		if (pathname === "/api/health") {
-			return Response.json({ status: "ok", timestamp: Date.now() });
+		if (pathname === '/api/health') {
+			return Response.json({ status: 'ok', timestamp: Date.now() })
 		}
 
-		if (pathname === "/echo" && req.method === "POST") {
+		if (pathname === '/echo' && req.method === 'POST') {
 			return new Response(req.body, {
-				headers: { "content-type": req.headers.get("content-type") || "application/octet-stream" },
-			});
+				headers: {
+					'content-type': req.headers.get('content-type') || 'application/octet-stream'
+				}
+			})
 		}
 
 		return new Response(HTML, {
-			headers: { "content-type": "text/html; charset=utf-8" },
-		});
+			headers: { 'content-type': 'text/html; charset=utf-8' }
+		})
 	},
-});
+	port
+})
 
-console.log(`Demo server at http://localhost:${port}`);
+console.log(`Demo server at http://localhost:${port}`)

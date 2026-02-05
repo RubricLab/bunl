@@ -2,33 +2,41 @@
 	"bin": {
 		"bunl": "build/client.js"
 	},
-	"name": "@rubriclab/bunl",
-	"description": "Expose localhost to the world. Bun-native localtunnel.",
-	"version": "0.2.0",
-	"license": "MIT",
-	"type": "module",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/RubricLab/bunl.git"
+	"dependencies": {
+		"@rubriclab/config": "^0.0.24"
 	},
+	"description": "Expose localhost to the world. Bun-native localtunnel.",
 	"devDependencies": {
 		"@types/bun": "latest"
 	},
+	"homepage": "https://github.com/RubricLab/bunl#readme",
+	"keywords": [
+		"local",
+		"tunnel",
+		"bun",
+		"websocket"
+	],
+	"license": "MIT",
 	"main": "build/client.js",
-	"scripts": {
-		"server": "bun server.ts",
-		"dev:server": "bun --watch server.ts",
-		"client": "bun --watch client.ts",
-		"demo": "bun --watch demo.ts",
-		"build": "bun build client.ts --outdir build --target bun && printf '#! /usr/bin/env bun\\n%s' \"$(cat build/client.js)\" > build/client.js",
-		"test": "bun test",
-		"test:e2e": "bun test e2e.test.ts"
-	},
+	"name": "@rubriclab/bunl",
 	"publishConfig": {
 		"@RubricLab:registry": "https://registry.npmjs.org",
 		"access": "public",
 		"registry": "https://registry.npmjs.org"
 	},
-	"homepage": "https://github.com/RubricLab/bunl#readme",
-	"keywords": ["local", "tunnel", "bun", "websocket"]
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/RubricLab/bunl.git"
+	},
+	"scripts": {
+		"build": "bun build client.ts --outdir build --target bun && printf '#! /usr/bin/env bun\\n%s' \"$(cat build/client.js)\" > build/client.js",
+		"client": "bun --watch client.ts",
+		"demo": "bun --watch demo.ts",
+		"dev:server": "bun --watch server.ts",
+		"server": "bun server.ts",
+		"test": "bun test",
+		"test:e2e": "bun test e2e.test.ts"
+	},
+	"type": "module",
+	"version": "0.2.0"
 }

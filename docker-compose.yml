@@ -3,20 +3,34 @@ services:
     build: .
     ports:
       - "1234:1234"
+    volumes:
+      - .:/app
+      - /app/node_modules
     environment:
       PORT: "1234"
       SCHEME: http
-      DOMAIN: localhost:1234
+      DOMAIN: "localhost:1234"
+    entrypoint: ["bun", "--watch", "run", "server.ts"]
 
   demo:
     build: .
-    entrypoint: ["bun", "run", "demo.ts"]
+    entrypoint: ["bun", "--watch", "run", "demo.ts"]
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
     environment:
       DEMO_PORT: "3000"
 
   client:
     build: .
-    entrypoint: ["bun", "run", "client.ts", "-p", "3000", "-d", "server:1234", "-s", "test"]
+    entrypoint: ["bun", "--watch", "run", "client.ts", "-p", "3000", "-d", "server:1234", "-s", "test"]
+    volumes:
+      - .:/app
+      - /app/node_modules
     depends_on:
       - server
       - demo
+    environment:
+      HOST: "bunl-demo-1"
