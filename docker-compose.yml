@@ -1,0 +1,22 @@
+services:
+  server:
+    build: .
+    ports:
+      - "1234:1234"
+    environment:
+      PORT: "1234"
+      SCHEME: http
+      DOMAIN: localhost:1234
+
+  demo:
+    build: .
+    entrypoint: ["bun", "run", "demo.ts"]
+    environment:
+      DEMO_PORT: "3000"
+
+  client:
+    build: .
+    entrypoint: ["bun", "run", "client.ts", "-p", "3000", "-d", "server:1234", "-s", "test"]
+    depends_on:
+      - server
+      - demo

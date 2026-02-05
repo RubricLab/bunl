@@ -1,46 +1,34 @@
 {
-  "bin": {
-    "bunl": "build/client.js"
-  },
-  "name": "@rubriclab/bunl",
-  "description": "Expose localhost to the world",
-  "version": "0.1.25",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/RubricLab/bunl.git"
-  },
-  "dependencies": {
-    "human-id": "^4.1.1",
-    "open": "^10.1.0"
-  },
-  "devDependencies": {
-    "@rubriclab/typescript-config": "^1.0.0",
-    "@types/bun": "latest"
-  },
-  "main": "build/client.js",
-  "scripts": {
-    "server": "bun server.ts",
-    "dev:server": "bun --watch server.ts",
-    "client": "bun --watch client.ts",
-    "demo": "bun --watch demo.ts",
-    "client:upgrade": "bun rm -g @rubriclab/bunl && bun i -g @rubriclab/bunl@latest",
-    "build": "BUILD=build/client.js && bun build client.ts --outdir build --target bun && echo -e \"#! /usr/bin/env bun\n$(cat $BUILD)\" > $BUILD",
-    "npm:publish": "bun run build && npm publish"
-  },
-  "type": "module",
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "publishConfig": {
-    "@RubricLab:registry": "https://registry.npmjs.org",
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  },
-  "homepage": "https://github.com/RubricLab/bunl#readme",
-  "keywords": [
-    "local",
-    "tunnel",
-    "rubric"
-  ]
+	"bin": {
+		"bunl": "build/client.js"
+	},
+	"name": "@rubriclab/bunl",
+	"description": "Expose localhost to the world. Bun-native localtunnel.",
+	"version": "0.2.0",
+	"license": "MIT",
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/RubricLab/bunl.git"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"main": "build/client.js",
+	"scripts": {
+		"server": "bun server.ts",
+		"dev:server": "bun --watch server.ts",
+		"client": "bun --watch client.ts",
+		"demo": "bun --watch demo.ts",
+		"build": "bun build client.ts --outdir build --target bun && printf '#! /usr/bin/env bun\\n%s' \"$(cat build/client.js)\" > build/client.js",
+		"test": "bun test",
+		"test:e2e": "bun test e2e.test.ts"
+	},
+	"publishConfig": {
+		"@RubricLab:registry": "https://registry.npmjs.org",
+		"access": "public",
+		"registry": "https://registry.npmjs.org"
+	},
+	"homepage": "https://github.com/RubricLab/bunl#readme",
+	"keywords": ["local", "tunnel", "bun", "websocket"]
 }

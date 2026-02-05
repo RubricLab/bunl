@@ -1,87 +1,153 @@
-import { serve, type ServerWebSocket } from "bun";
-import { uid } from "./utils";
-import type { Client, Payload } from "./types";
+import type { ServerWebSocket } from "bun";
+import { uid, toBase64 } from "./utils";
+import type {
+	Client,
+	TunnelRequest,
+	TunnelResponse,
+	TunnelInit,
+} from "./types";
 
-const port = Bun.env.PORT || 1234;
+const port = Number(Bun.env.PORT) || 1234;
 const scheme = Bun.env.SCHEME || "http";
 const domain = Bun.env.DOMAIN || `localhost:${port}`;
 
+/** Connected tunnel clients keyed by subdomain */
 const clients = new Map<string, ServerWebSocket<Client>>();
-const requesters = new Map<string, WritableStream>();
 
-serve<Client>({
-  port,
-  fetch: async (req, server) => {
-    const reqUrl = new URL(req.url);
+/** Pending HTTP requests waiting for a tunnel response, keyed by request ID */
+const pending = new Map<
+	string,
+	{
+		resolve: (res: TunnelResponse) => void;
+		timer: Timer;
+	}
+>();
 
-    if (reqUrl.searchParams.has("new")) {
-      const requested = reqUrl.searchParams.get("subdomain");
-      let id = requested || uid();
-      if (clients.has(id)) id = uid();
+const TIMEOUT_MS = 30_000;
 
-      const upgraded = server.upgrade(req, { data: { id } });
-      if (upgraded) return;
-      else return new Response("upgrade failed", { status: 500 });
-    }
+Bun.serve<Client>({
+	port,
+	fetch: async (req, server) => {
+		const reqUrl = new URL(req.url);
 
-    const subdomain = reqUrl.hostname.split(".")[0];
+		// Client wants to register a new tunnel
+		if (reqUrl.searchParams.has("new")) {
+			const requested = reqUrl.searchParams.get("subdomain");
+			let id = requested || uid();
+			// Avoid collisions — if taken, generate a fresh one
+			if (clients.has(id)) id = uid();
 
-    if (!clients.has(subdomain)) {
-      return new Response(`${subdomain} not found`, { status: 404 });
-    }
+			const upgraded = server.upgrade(req, { data: { id } });
+			if (upgraded) return undefined;
+			return new Response("WebSocket upgrade failed", { status: 500 });
+		}
 
-    // The magic: forward the req to the client
-    const client = clients.get(subdomain)!;
-    const { method, url, headers: reqHeaders } = req;
-    const reqBody = await req.text();
-    const pathname = new URL(url).pathname;
-    const payload: Payload = {
-      method,
-      pathname,
-      body: reqBody,
-      headers: reqHeaders,
-    };
+		// Public HTTP request — route to the right tunnel client
+		const subdomain = reqUrl.hostname.split(".")[0];
+		const client = clients.get(subdomain);
 
-    const { writable, readable } = new TransformStream();
+		if (!client) {
+			return new Response(`Tunnel "${subdomain}" not found`, { status: 404 });
+		}
 
-    requesters.set(`${method}:${subdomain}${pathname}`, writable);
-    client.send(JSON.stringify(payload));
+		const id = crypto.randomUUID();
+		const { method } = req;
+		const pathname = reqUrl.pathname + reqUrl.search;
 
-    const res = await readable.getReader().read();
-    const { status, statusText, headers, body } = JSON.parse(res.value);
+		// Read request body as binary and encode to base64
+		const rawBody = await req.arrayBuffer();
+		const body = rawBody.byteLength > 0 ? toBase64(rawBody) : "";
 
-    delete headers["content-encoding"]; // remove problematic header
+		// Flatten request headers
+		const headers: Record<string, string> = {};
+		req.headers.forEach((v, k) => {
+			headers[k] = v;
+		});
 
-    return new Response(body, { status, statusText, headers });
-  },
-  websocket: {
-    open(ws) {
-      clients.set(ws.data.id, ws);
-      console.log(`\x1b[32m+ ${ws.data.id} (${clients.size} total)\x1b[0m`);
-      ws.send(
-        JSON.stringify({
-          url: `${scheme}://${ws.data.id}.${domain}`,
-        })
-      );
-    },
-    message: async ({ data: { id } }, message: string) => {
-      console.log("message from", id);
+		const message: TunnelRequest = {
+			type: "request",
+			id,
+			method,
+			pathname,
+			headers,
+			body,
+		};
 
-      const { method, pathname } = JSON.parse(message) as Payload;
-      const writable = requesters.get(`${method}:${id}${pathname}`);
-      if (!writable) throw "connection not found";
+		// Create a promise that will be resolved when the client responds
+		const response = await new Promise<TunnelResponse>((resolve, reject) => {
+			const timer = setTimeout(() => {
+				pending.delete(id);
+				reject(new Error("Tunnel request timed out"));
+			}, TIMEOUT_MS);
 
-      if (writable.locked) return;
+			pending.set(id, { resolve, timer });
+			client.send(JSON.stringify(message));
+		}).catch((err) => {
+			return {
+				type: "response" as const,
+				id,
+				status: 504,
+				statusText: "Gateway Timeout",
+				headers: { "content-type": "text/plain" },
+				body: toBase64(new TextEncoder().encode(String(err.message))),
+			};
+		});
 
-      const writer = writable.getWriter();
-      await writer.write(message);
-      await writer.close();
-    },
-    close({ data }) {
-      console.log("closing", data.id);
-      clients.delete(data.id);
-    },
-  },
+		// Decode base64 response body back to binary
+		const resBody = response.body
+			? Buffer.from(response.body, "base64")
+			: null;
+
+		// Build response headers, removing problematic ones
+		const resHeaders = { ...response.headers };
+		delete resHeaders["content-encoding"];
+		delete resHeaders["transfer-encoding"];
+		// Fix content-length to match the actual decoded body
+		if (resBody) {
+			resHeaders["content-length"] = String(resBody.byteLength);
+		}
+
+		return new Response(resBody, {
+			status: response.status,
+			statusText: response.statusText,
+			headers: resHeaders,
+		});
+	},
+	websocket: {
+		open(ws) {
+			clients.set(ws.data.id, ws);
+			console.log(
+				`\x1b[32m+ ${ws.data.id}\x1b[0m (${clients.size} connected)`
+			);
+			const init: TunnelInit = {
+				type: "init",
+				url: `${scheme}://${ws.data.id}.${domain}`,
+			};
+			ws.send(JSON.stringify(init));
+		},
+
+		message(_ws, raw) {
+			const msg = JSON.parse(
+				typeof raw === "string" ? raw : new TextDecoder().decode(raw)
+			) as TunnelResponse;
+
+			if (msg.type !== "response" || !msg.id) return;
+
+			const entry = pending.get(msg.id);
+			if (!entry) return;
+
+			clearTimeout(entry.timer);
+			pending.delete(msg.id);
+			entry.resolve(msg);
+		},
+
+		close(ws) {
+			console.log(
+				`\x1b[31m- ${ws.data.id}\x1b[0m (${clients.size - 1} connected)`
+			);
+			clients.delete(ws.data.id);
+		},
+	},
 });
 
-console.log(`websocket server up at ws://${domain}`);
+console.log(`bunl server listening on :${port} (${scheme}://*.${domain})`);
