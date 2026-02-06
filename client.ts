@@ -18,9 +18,14 @@ async function main({
 		...(subdomain ? { subdomain } : {})
 	}).toString()
 
-	const serverUrl = `ws://${domain}?${params}`
+	// Auto-detect ws:// vs wss:// — use secure WebSocket for anything
+	// that isn't localhost or an explicit IP
+	const isLocal = /^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(domain || '')
+	const wsScheme = isLocal ? 'ws' : 'wss'
+	const serverUrl = `${wsScheme}://${domain}?${params}`
 	const socket = new WebSocket(serverUrl)
-	const localOrigin = `http://${Bun.env.HOST}:${port}`
+	const localHost = Bun.env.HOST || 'localhost'
+	const localOrigin = `http://${localHost}:${port}`
 
 	socket.addEventListener('message', async event => {
 		const data = JSON.parse(event.data as string)

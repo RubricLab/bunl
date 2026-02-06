@@ -6,6 +6,9 @@ const port = Number(Bun.env.PORT) || 1234
 const scheme = Bun.env.SCHEME || 'http'
 const domain = Bun.env.DOMAIN || `localhost:${port}`
 
+/** The hostname portion of DOMAIN (no port) used for subdomain extraction */
+const domainHost = domain.replace(/:\d+$/, '')
+
 /** Connected tunnel clients keyed by subdomain */
 const clients = new Map<string, ServerWebSocket<Client>>()
 
@@ -36,9 +39,16 @@ serve<Client>({
 			return new Response('WebSocket upgrade failed', { status: 500 })
 		}
 
-		// Public HTTP request — route to the right tunnel client
-		const subdomain = reqUrl.hostname.split('.')[0] || ''
-		const client = clients.get(subdomain)
+		// Public HTTP request — route to the right tunnel client.
+		// Use the Host header (not reqUrl.hostname) so this works behind
+		// reverse proxies like Fly.io where reqUrl.hostname is internal.
+		// Strip the DOMAIN suffix to extract the tunnel subdomain, so it
+		// works when the server is itself on a subdomain (e.g. bunl.rubric.sh).
+		const host = (req.headers.get('host') || reqUrl.hostname).replace(/:\d+$/, '')
+		const subdomain = host.endsWith(`.${domainHost}`)
+			? host.slice(0, -(domainHost.length + 1))
+			: ''
+		const client = subdomain ? clients.get(subdomain) : undefined
 
 		if (!client) {
 			return new Response(`Tunnel "${subdomain}" not found`, { status: 404 })
