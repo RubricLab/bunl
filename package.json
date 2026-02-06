@@ -41,6 +41,7 @@
 		"format": "bun x biome format --write .",
 		"lint": "bun x biome check .",
 		"lint:fix": "bun x biome lint . --write --unsafe",
+		"prepare": "bun x @rubriclab/package prepare",
 		"server": "bun server.ts",
 		"test": "bun test",
 		"test:e2e": "bun test e2e.test.ts"
@@ -49,5 +50,5 @@
 		"post-commit": "rubriclab-package post-commit"
 	},
 	"type": "module",
-	"version": "0.2.0"
+	"version": "0.2.1"
 }
