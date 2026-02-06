@@ -1,78 +1,34 @@
 # bunl
 
-## A Bun WebSocket re-write of LocalTunnel
-
-### Usage
-
-To try it:
+Expose localhost to the world. Bun-native WebSocket tunnel.
 
 ```bash
-bun x bunl -p 3000 -d dev.rubric.me -s my-name
+bun x bunl -p 3000
 ```
 
-### Development
+## Options
 
-To install dependencies:
+| Flag | Short | Default | Description |
+| --- | --- | --- | --- |
+| `--port` | `-p` | `3000` | Local port to expose |
+| `--domain` | `-d` | `bunl.rubric.sh` | Tunnel server |
+| `--subdomain` | `-s` | random | Requested subdomain |
+| `--open` | `-o` | `false` | Open URL in browser |
+
+## Development
 
 ```bash
 bun i
+bun dev:server   # tunnel server on :1234
+bun demo         # demo app on :3000
+bun client       # connect demo to server
+bun test:e2e     # end-to-end tests
 ```
 
-To run the server:
-
-```bash
-bun dev:server
-```
-
-(Optional) to run a dummy process on localhost:3000:
-
-```bash
-bun demo
-```
-
-To run the client:
-
-```bash
-bun client -p 3000
-```
-
-With full args:
-
-```bash
-bun client --port 3000 --domain example.so --subdomain my-subdomain --open
-```
-
-Or in shortform:
-
-```bash
-bun client -p 3000 -d example.so -s my-subdomain -o
-```
-
-The options:
-
-- `port` / `p` the localhost port to expose eg. **3000**
-- `domain` / `d` the hostname of the server Bunl is running on eg. **example.so**
-- `subdomain` / `s` the public URL to request eg. **my-subdomain**.example.so
-- `open` / `o` to auto-open your public URL in the browser
-
-### [WIP] Deployment
-
-To build the client code:
+## Deployment
 
 ```bash
 bun run build
-```
-
-To deploy the server, for example on [Fly](https://fly.io):
-
-```bash
 fly launch && fly deploy
+fly secrets set DOMAIN=bunl.rubric.sh SCHEME=https
 ```
-
-Making sure to set `DOMAIN` to your domain:
-
-```bash
-fly secrets set DOMAIN=example.so
-```
-
-Open to PRs!
