@@ -133,7 +133,7 @@ if (values.version) {
 }
 
 main({
-	domain: values.domain || 'bunl.rubric.sh',
+	domain: values.domain || 'bunl.sh',
 	open: values.open || false,
 	port: values.port || '3000',
 	subdomain: values.subdomain || ''
