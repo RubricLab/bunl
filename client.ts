@@ -1,6 +1,15 @@
 import { parseArgs } from 'node:util'
 import type { TunnelInit, TunnelRequest, TunnelResponse } from './types'
-import { fromBase64, openBrowser, toBase64 } from './utils'
+import { fromBase64, openBrowser, page, toBase64 } from './utils'
+
+function badGatewayHtml(port: string) {
+	return page(
+		'Bad Gateway',
+		`<h1>Bad Gateway</h1>
+<p>Could not reach <code>localhost:${port}</code>.</p>
+<p>Make sure your local server is running.</p>`
+	)
+}
 
 async function main({
 	port,
@@ -18,8 +27,6 @@ async function main({
 		...(subdomain ? { subdomain } : {})
 	}).toString()
 
-	// Auto-detect ws:// vs wss:// — use secure WebSocket for anything
-	// that isn't localhost or an explicit IP
 	const isLocal = /^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(domain || '')
 	const wsScheme = isLocal ? 'ws' : 'wss'
 	const serverUrl = `${wsScheme}://${domain}?${params}`
@@ -30,7 +37,6 @@ async function main({
 	socket.addEventListener('message', async event => {
 		const data = JSON.parse(event.data as string)
 
-		// Initial connection — server tells us our public URL
 		if (data.type === 'init') {
 			const init = data as TunnelInit
 			console.log(`\n↪ Your URL: \x1b[32m${init.url}\x1b[0m\n`)
@@ -38,17 +44,14 @@ async function main({
 			return
 		}
 
-		// Incoming tunnel request — proxy to local server
 		if (data.type === 'request') {
 			const req = data as TunnelRequest
 			const now = performance.now()
 
 			try {
-				// Decode base64 request body
 				const reqBody =
 					req.body && req.method !== 'GET' && req.method !== 'HEAD' ? fromBase64(req.body) : null
 
-				// Remove headers that would conflict with the local fetch
 				const fwdHeaders = { ...req.headers }
 				delete fwdHeaders.host
 				delete fwdHeaders.connection
@@ -63,7 +66,6 @@ async function main({
 				const elapsed = (performance.now() - now).toFixed(1)
 				console.log(`\x1b[32m${req.method}\x1b[0m ${req.pathname} → ${res.status} (${elapsed}ms)`)
 
-				// Read response as binary, encode to base64
 				const resBody = await res.arrayBuffer()
 				const headers: Record<string, string> = {}
 				res.headers.forEach((v, k) => {
@@ -83,9 +85,10 @@ async function main({
 			} catch (err) {
 				console.error(`\x1b[31mERR\x1b[0m ${req.method} ${req.pathname}: ${err}`)
 
+				const html = badGatewayHtml(port || '3000')
 				const response: TunnelResponse = {
-					body: toBase64(new TextEncoder().encode(`Failed to reach localhost:${port} — ${err}`).buffer),
-					headers: { 'content-type': 'text/plain' },
+					body: toBase64(new TextEncoder().encode(html).buffer),
+					headers: { 'content-type': 'text/html; charset=utf-8' },
 					id: req.id,
 					status: 502,
 					statusText: 'Bad Gateway',
@@ -115,7 +118,7 @@ const { values } = parseArgs({
 	allowPositionals: true,
 	args: process.argv,
 	options: {
-		domain: { default: 'localhost:1234', short: 'd', type: 'string' },
+		domain: { default: 'bunl.sh', short: 'd', type: 'string' },
 		open: { short: 'o', type: 'boolean' },
 		port: { default: '3000', short: 'p', type: 'string' },
 		subdomain: { short: 's', type: 'string' },
@@ -130,7 +133,7 @@ if (values.version) {
 }
 
 main({
-	domain: values.domain || 'localhost:1234',
+	domain: values.domain || 'bunl.sh',
 	open: values.open || false,
 	port: values.port || '3000',
 	subdomain: values.subdomain || ''

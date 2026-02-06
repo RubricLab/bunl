@@ -3,12 +3,16 @@
 		"bunl": "build/client.js"
 	},
 	"dependencies": {
-		"@rubriclab/config": "^0.0.24"
+		"@rubriclab/config": "^0.0.24",
+		"react": "^19.2.4",
+		"react-dom": "^19.2.4"
 	},
 	"description": "Expose localhost to the world. Bun-native localtunnel.",
 	"devDependencies": {
 		"@rubriclab/package": "^0.0.124",
-		"@types/bun": "latest"
+		"@types/bun": "latest",
+		"@types/react": "^19.2.13",
+		"@types/react-dom": "^19.2.3"
 	},
 	"homepage": "https://github.com/RubricLab/bunl#readme",
 	"keywords": [
@@ -32,7 +36,7 @@
 		"build": "bun build client.ts --outdir build --target bun && printf '#! /usr/bin/env bun\\n%s' \"$(cat build/client.js)\" > build/client.js",
 		"clean": "rm -rf .next && rm -rf node_modules",
 		"client": "bun --watch client.ts",
-		"demo": "bun --watch demo.ts",
+		"demo": "bun --watch demo.tsx",
 		"dev:server": "bun --watch server.ts",
 		"format": "bun x biome format --write .",
 		"lint": "bun x biome check .",
