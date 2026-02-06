@@ -7,6 +7,7 @@
 	},
 	"description": "Expose localhost to the world. Bun-native localtunnel.",
 	"devDependencies": {
+		"@rubriclab/package": "^0.0.124",
 		"@types/bun": "latest"
 	},
 	"homepage": "https://github.com/RubricLab/bunl#readme",
@@ -20,22 +21,28 @@
 	"main": "build/client.js",
 	"name": "@rubriclab/bunl",
 	"publishConfig": {
-		"@RubricLab:registry": "https://registry.npmjs.org",
-		"access": "public",
-		"registry": "https://registry.npmjs.org"
+		"access": "public"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/RubricLab/bunl.git"
 	},
 	"scripts": {
+		"bleed": "bun x npm-check-updates -u",
 		"build": "bun build client.ts --outdir build --target bun && printf '#! /usr/bin/env bun\\n%s' \"$(cat build/client.js)\" > build/client.js",
+		"clean": "rm -rf .next && rm -rf node_modules",
 		"client": "bun --watch client.ts",
 		"demo": "bun --watch demo.ts",
 		"dev:server": "bun --watch server.ts",
+		"format": "bun x biome format --write .",
+		"lint": "bun x biome check .",
+		"lint:fix": "bun x biome lint . --write --unsafe",
 		"server": "bun server.ts",
 		"test": "bun test",
 		"test:e2e": "bun test e2e.test.ts"
+	},
+	"simple-git-hooks": {
+		"post-commit": "rubriclab-package post-commit"
 	},
 	"type": "module",
 	"version": "0.2.0"

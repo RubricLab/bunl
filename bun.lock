@@ -8,6 +8,7 @@
         "@rubriclab/config": "^0.0.24",
       },
       "devDependencies": {
+        "@rubriclab/package": "^0.0.124",
         "@types/bun": "latest",
       },
     },

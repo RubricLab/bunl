@@ -45,9 +45,7 @@ serve<Client>({
 		// Strip the DOMAIN suffix to extract the tunnel subdomain, so it
 		// works when the server is itself on a subdomain (e.g. bunl.rubric.sh).
 		const host = (req.headers.get('host') || reqUrl.hostname).replace(/:\d+$/, '')
-		const subdomain = host.endsWith(`.${domainHost}`)
-			? host.slice(0, -(domainHost.length + 1))
-			: ''
+		const subdomain = host.endsWith(`.${domainHost}`) ? host.slice(0, -(domainHost.length + 1)) : ''
 		const client = subdomain ? clients.get(subdomain) : undefined
 
 		if (!client) {
