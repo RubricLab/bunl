@@ -118,7 +118,7 @@ const { values } = parseArgs({
 	allowPositionals: true,
 	args: process.argv,
 	options: {
-		domain: { default: 'bunl.rubric.sh', short: 'd', type: 'string' },
+		domain: { default: 'bunl.sh', short: 'd', type: 'string' },
 		open: { short: 'o', type: 'boolean' },
 		port: { default: '3000', short: 'p', type: 'string' },
 		subdomain: { short: 's', type: 'string' },
